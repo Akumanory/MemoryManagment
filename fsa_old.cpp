@@ -1,8 +1,9 @@
 #include <sys/mman.h>
 #include <iostream>
 // блок по 16
+#include "memory_allocator.h"
 
-class FSA
+class FSA final : public MemoryAllocator
 {
 public:
     struct Node
@@ -26,14 +27,15 @@ public:
         
     }
 
-    ~FSA()
+    ~FSA() override
     {
         destroy();
     }
 
-    void init()
+    void init() override
     {
         _inited = true;
+        _count_of_pages = 1;
         _count_of_blocks = PageSize / _size_of_block;
         if (_size_of_block == 16)
         {
@@ -59,7 +61,7 @@ public:
         // _free_block_index = 1;
     }
 
-    void destroy()
+    void destroy() override
     {
         if (_inited == true)
         {
@@ -88,17 +90,19 @@ public:
             _current_page = nullptr;
             _size_of_block = 0;
             _count_of_blocks = 0;
+            _count_of_pages = 0;
             _inited = false;
         }
         
     }
 
-    void* alloc(size_t size)
+    void* alloc(size_t size) override
     {
         if (_current_page->free_block_index == _count_of_blocks)
         {
             if (_current_page->next == nullptr)
             {
+                _count_of_pages++;
                 void* temp = mmap(NULL, PageSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 
                 Node* old_node_place = (Node*)_current_page->memory;
@@ -131,7 +135,8 @@ public:
         return ptr;
     }
 
-    void free(void* p) {
+    void free(void* p) override
+    {
         Node * temp = _first_page;
         
         while (temp->next != nullptr)
@@ -175,6 +180,25 @@ public:
         }
     }
 
+    bool contains(void* ptr) const
+    {
+        Node * temp = _first_page;
+        for (size_t i = 0; i < _count_of_pages; i++)
+        {
+            for (size_t i = 0; i < _count_of_blocks; i++)
+            {
+                void* temp_mem = temp->memory;
+                void* p_temp = (char*)temp_mem + (i + 2) * _size_of_block;
+                if (p_temp == ptr)
+                {
+                    return true;
+                }
+            }
+            temp = temp->next;
+        }
+        return false;
+    }
+
     // Тест Метод
     void show_mapped()
     {
@@ -190,15 +214,11 @@ public:
     }
 
 private:
-    // 16 * 3 для теста по 16 байт
-    const static size_t PageSize = 128;
-    // void* _map;
+    // const static size_t PageSize = 128;
     size_t _size_of_block;
     size_t _count_of_blocks;
+    size_t _count_of_pages;
     bool _inited;
-    // size_t _free_block_index;
-    // Node* _temp;
     Node* _current_page;
     Node* _first_page;
-
 };
