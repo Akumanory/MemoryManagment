@@ -9,28 +9,30 @@ int main()
 
     int* first = (int*)a.alloc(sizeof(int));
     int* second = (int*)a.alloc(sizeof(int));
-    // int* third = (int*)a.alloc(sizeof(int));
-    // int* fourth = (int*)a.alloc(sizeof(int));
-    // int* fith = (int*)a.alloc(sizeof(int));
+    int* third = (int*)a.alloc(sizeof(int));
+    int* fourth = (int*)a.alloc(sizeof(int));
+    int* fith = (int*)a.alloc(sizeof(int));
 
-    // *(first) = 101;
-    // *(second) = 202;
-    // *(third) = 303;
-    // *(fourth) = 404;
-    // *(fith) = 505;
+    *(first) = 101;
+    *(second) = 202;
+    *(third) = 303;
+    *(fourth) = 404;
+    *(fith) = 505;
 
-    // a.free(second);
-    // a.free(fourth);
+    a.free(second);
+    a.free(fourth);
     
-    // // a.show_data();
+    // a.show_data();
 
-    // a.free(third);
+    a.free(third);
 
-    // // a.show_data();
+    // a.show_data();
 
-    // int* first_2 = (int*)a.alloc(sizeof(int));
+    int* first_2 = (int*)a.alloc(sizeof(int));
 
-    // *(first_2) = 2101;
+    *(first_2) = 2101;
 
     a.show_data();
+
+    a.destroy();
 }
