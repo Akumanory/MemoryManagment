@@ -21,7 +21,7 @@ public:
     FSA(size_t size_of_block)
     {
         // _size_of_block = size_of_block;
-        _size_of_block = 16;
+        _size_of_block = size_of_block;
         std::cout << "Node: " << sizeof(Node) << std::endl; 
         
     }
