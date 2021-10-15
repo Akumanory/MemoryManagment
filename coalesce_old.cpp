@@ -1,7 +1,9 @@
 #include <sys/mman.h>
 #include <iostream>
 
-class Coalesce
+#include "memory_allocator.h"
+
+class Coalesce final : public MemoryAllocator
 {
 public:
     struct BlockData
@@ -44,7 +46,7 @@ public:
         _count_of_pages = 1;
     }
 
-    ~Coalesce()
+    ~Coalesce() override
     {
         if (_inited == true)
         {
@@ -53,7 +55,7 @@ public:
         
     }
 
-    void init()
+    void init() override
     {
         _inited = true;
         
@@ -70,7 +72,7 @@ public:
         _current_page->count_of_blocks = 1;
     }
 
-    void destroy()
+    void destroy() override
     {
         PageNode* temp = _first_page;
 
@@ -85,7 +87,7 @@ public:
         _inited = false;
     }
 
-    void* alloc(size_t size)
+    void* alloc(size_t size) override
     {
         std::cout << "sizeof(BlockData): " << sizeof(BlockData) << std::endl;
 
@@ -137,7 +139,7 @@ public:
         return nullptr;
     }
 
-    void free(void* p)
+    void free(void* p) override
     {
         std::cout << "FREE" << std::endl;
         PageNode* temp = _first_page;
@@ -179,32 +181,25 @@ public:
             }
             temp = temp->next;
         }
-        
-        // std::cout << "FREE" << std::endl;
-        // BlockData* temp_block = (BlockData*)((char*)p - sizeof(BlockData));
-        // temp->with_value = false;
-        // if (temp->next != nullptr && 
-        //     temp->next->with_value == false)
-        // {
-        //     // Вынести количество блоков под управлении страницы
-        //     _current_page->count_of_blocks--;
-        //     temp->size += temp->next->size + sizeof(BlockData);
-        //     if (temp->next->next != nullptr)
-        //     {
-        //         temp->next->next->prev = temp;
-        //     }
-        //     temp->next = temp->next->next;
-        // }
-        // if (temp->prev != nullptr &&
-        //     temp->prev->with_value == false)
-        // {
-        //     _current_page->count_of_blocks--;
-        //     temp->prev->size += temp->size + sizeof(BlockData);
-        //     temp->prev->next = temp->next;
-        // }
+    }
 
-        // std::cout << "Value of block: " << *((int*)((char*)temp->memory + sizeof(BlockData))) << std::endl;
-        // std::cout << std::endl;
+    bool contains(void* ptr) const
+    {
+        PageNode* temp = _first_page;
+        for (size_t i = 0; i < _count_of_pages; i++)
+        {
+            BlockData* temp_block = _current_page->first_block_data;
+            
+            for (size_t i = 0; i < _current_page->count_of_blocks; i++)
+            {
+                void* p_temp = (char*)temp_block + sizeof(BlockData);
+                if (p_temp == ptr)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     //TEST METHODS
@@ -225,13 +220,9 @@ public:
 
 
 private:
-    const static size_t PageSize = 512;
+    // const static size_t PageSize = 512;
     bool _inited;
-    // size_t _count_of_blocks;
-    size_t _count_of_pages;
-    // Temp переменная для ссылки на первую страницу
-    // void* map;
-    
+    size_t _count_of_pages;    
     PageNode* _current_page;
     PageNode* _first_page;
 };
